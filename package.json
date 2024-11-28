@@ -8,7 +8,7 @@
     "dev": "npx ts-node src/index.ts",
     "start": "node dist/cli.js",
     "build": "npx tsc && npx resolve-tspaths",
-    "prepare": "husky"
+    "prepare": "husky && husky install"
   },
   "repository": {
     "type": "git",
@@ -41,5 +41,8 @@
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3"
+  },
+  "lint-staged": {
+    "*.{js,css,md}": "prettier --write"
   }
 }
