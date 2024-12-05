@@ -2,20 +2,21 @@ import { ContextGraph } from "@/common/ctxgraph"
 import type { IDependencyGraph } from "@/common/depgraph"
 import { createParser } from "@/common/parser"
 import { ProjectType } from "@/common/parser/project"
-import { StatusCode } from "@/util/process"
+import { isStatusCode } from "@/util/process"
 import dotenv from "dotenv"
 import fsSync from "fs"
+import process from "process"
 
 dotenv.config()
 
 async function main() {
 	const projectParser = await createParser({
-		projectPath: "tests/ts.esnext.nodenext.nodenext",
+		projectPath: process.cwd(),
 		projectEntryPoint: "index.ts",
 		projectType: ProjectType["ts.esnext.nodenext.nodenext"],
 	})
 
-	if (projectParser === StatusCode.BadModule) {
+	if (isStatusCode(projectParser)) {
 		return
 	}
 

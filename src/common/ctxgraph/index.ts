@@ -1,9 +1,17 @@
-import type { DependencyGraph } from "@/common/depgraph";
-import type { Module } from "@/common/depgraph/modules";
-import type { Symbol } from "@/common/depgraph/symbols";
-import { MODEL, SYSTEM_PROMPT, generateMessageForModule, generateMessageForSymbol, openAiClient } from "@/util/ai";
-import { LogLevel, log } from "@/util/log";
-
+import {
+	type DependencyGraph,
+	UNRESOLVED_MODULE_PREFIX,
+} from "@/common/depgraph"
+import type { Module } from "@/common/depgraph/modules"
+import type { Symbol } from "@/common/depgraph/symbols"
+import {
+	MODEL,
+	SYSTEM_PROMPT,
+	generateMessageForModule,
+	generateMessageForSymbol,
+	openAiClient,
+} from "@/util/ai"
+import { LogLevel, log } from "@/util/log"
 
 export class ContextGraph {
 	dependencyGraph: DependencyGraph
@@ -63,10 +71,19 @@ export class ContextGraph {
 				)
 				if (
 					!symbolDependencyNode ||
-					symbolDependencyNode.symbolSummary === undefined
+					symbolDependencyNode.symbolSummary
 				) {
 					return undefined
 				}
+
+				if (
+					symbolDependencyNode.symbolPath.startsWith(
+						UNRESOLVED_MODULE_PREFIX,
+					)
+				) {
+					return undefined
+				}
+
 				return symbolDependencyNode
 			},
 		)
@@ -87,6 +104,15 @@ export class ContextGraph {
 				) {
 					return undefined
 				}
+
+				if (
+					moduleDependencyNode.modulePath.startsWith(
+						UNRESOLVED_MODULE_PREFIX,
+					)
+				) {
+					undefined
+				}
+
 				return moduleDependencyNode
 			},
 		)
@@ -96,39 +122,57 @@ export class ContextGraph {
 				return moduleDepWithSum !== undefined
 			})
 
-		const symbolMessage = generateMessageForSymbol(
+		const { assistantMessages, userMessages } = generateMessageForSymbol(
 			depgraphSymbol,
 			filteredSymbolDepsWithSummaries,
 			filteredModuleDepsWithSummaries,
 		)
 
-		log(
-			"ctxgraph.symbol.summary.message",
-			LogLevel.Debug,
-			symbolMessage
-		)
+		log("ctxgraph.symbol.summary.message", LogLevel.Debug, {
+			assistantMessages,
+			userMessages,
+		})
+
+		const completionMessages = [
+			{
+				role: "system" as const,
+				content: SYSTEM_PROMPT,
+			},
+			...assistantMessages.map((assistantMessage) => {
+				return {
+					role: "assistant" as const,
+					content: assistantMessage,
+				}
+			}),
+			...userMessages.map((assistantMessage) => {
+				return {
+					role: "user" as const,
+					content: assistantMessage,
+				}
+			}),
+		]
 
 		const aiResponse = await openAiClient.chat.completions.create({
 			model: MODEL,
-			messages: [
-				{
-					role: "system",
-					content: SYSTEM_PROMPT,
-				},
-				{
-					role: "user",
-					content: symbolMessage,
-				},
-			],
+			messages: completionMessages,
 			n: 1,
 		})
 
 		if (aiResponse.choices.length) {
 			const responseSummary = aiResponse.choices[0].message.content
+			const promptTokens = aiResponse.usage?.prompt_tokens ?? "unknown"
+			const completionTokens =
+				aiResponse.usage?.completion_tokens ?? "unknown"
+
 			log(
 				"ctxgraph.symbol.summary.response",
 				LogLevel.Debug,
 				`Symbol ${symbolIdentifier} (${symbolPath}) - ${responseSummary}`,
+			)
+			log(
+				"ctxgraph",
+				LogLevel.Debug,
+				`Consumed ${promptTokens} prompt tokens, ${completionTokens} completion tokens to generate summary for ${symbolIdentifier}`,
 			)
 			this.dependencyGraph.updateSymbol(symbolPath, symbolIdentifier, {
 				symbolSummary: responseSummary || undefined,
@@ -153,6 +197,13 @@ export class ContextGraph {
 			this.dependencyGraph.getModuleDependenciesOfModule(modulePath)
 
 		for (const symbolDependency of symbolDependencies) {
+			if (
+				symbolDependency.dependencySymbolPath.startsWith(
+					UNRESOLVED_MODULE_PREFIX,
+				)
+			) {
+				continue
+			}
 			await this.generateSummaryForSymbol(
 				symbolDependency.dependencySymbolPath,
 				symbolDependency.dependencySymbolIdentifier,
@@ -160,6 +211,13 @@ export class ContextGraph {
 		}
 
 		for (const moduleDependency of moduleDependencies) {
+			if (
+				moduleDependency.dependencyModulePath.startsWith(
+					UNRESOLVED_MODULE_PREFIX,
+				)
+			) {
+				continue
+			}
 			await this.generateSummaryForModule(
 				moduleDependency.dependencyModulePath,
 			)
@@ -180,6 +238,15 @@ export class ContextGraph {
 				) {
 					return undefined
 				}
+
+				if (
+					symbolDependencyNode.symbolPath.startsWith(
+						UNRESOLVED_MODULE_PREFIX,
+					)
+				) {
+					undefined
+				}
+
 				return symbolDependencyNode
 			},
 		)
@@ -200,6 +267,15 @@ export class ContextGraph {
 				) {
 					return undefined
 				}
+
+				if (
+					moduleDependencyNode.modulePath.startsWith(
+						UNRESOLVED_MODULE_PREFIX,
+					)
+				) {
+					undefined
+				}
+
 				return moduleDependencyNode
 			},
 		)
@@ -209,35 +285,57 @@ export class ContextGraph {
 				return moduleDepWithSum !== undefined
 			})
 
-		const moduleMessage = generateMessageForModule(
+		const { assistantMessages, userMessages } = generateMessageForModule(
 			depgraphModule,
 			filteredSymbolDepsWithSummaries,
 			filteredModuleDepsWithSummaries,
 		)
 
-		log("ctxgraph.symbol.summary.message", LogLevel.Debug, moduleMessage)
+		log("ctxgraph.symbol.summary.message", LogLevel.Debug, {
+			assistantMessages,
+			userMessages,
+		})
+
+		const completionMessages = [
+			{
+				role: "system" as const,
+				content: SYSTEM_PROMPT,
+			},
+			...assistantMessages.map((assistantMessage) => {
+				return {
+					role: "assistant" as const,
+					content: assistantMessage,
+				}
+			}),
+			...userMessages.map((assistantMessage) => {
+				return {
+					role: "user" as const,
+					content: assistantMessage,
+				}
+			}),
+		]
 
 		const aiResponse = await openAiClient.chat.completions.create({
 			model: MODEL,
-			messages: [
-				{
-					role: "system",
-					content: SYSTEM_PROMPT,
-				},
-				{
-					role: "user",
-					content: moduleMessage,
-				},
-			],
+			messages: completionMessages,
 			n: 1,
 		})
 
 		if (aiResponse.choices.length) {
 			const responseSummary = aiResponse.choices[0].message.content
+			const promptTokens = aiResponse.usage?.prompt_tokens ?? "unknown"
+			const completionTokens =
+				aiResponse.usage?.completion_tokens ?? "unknown"
+
 			log(
 				"ctxgraph",
 				LogLevel.Debug,
 				`Module ${modulePath} - ${responseSummary}`,
+			)
+			log(
+				"ctxgraph",
+				LogLevel.Debug,
+				`Consumed ${promptTokens} prompt tokens, ${completionTokens} completion tokens to generate summary for ${modulePath}`,
 			)
 			this.dependencyGraph.updateModule(modulePath, {
 				moduleSummary: responseSummary || undefined,
@@ -247,6 +345,10 @@ export class ContextGraph {
 
 	async generateContext() {
 		for (const symbolNode of this.dependencyGraph.symbolNodes) {
+			if (symbolNode.symbolPath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
+				continue
+			}
+
 			await this.generateSummaryForSymbol(
 				symbolNode.symbolPath,
 				symbolNode.symbolIdentifier,
@@ -254,6 +356,10 @@ export class ContextGraph {
 		}
 
 		for (const moduleNode of this.dependencyGraph.moduleNodes) {
+			if (moduleNode.modulePath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
+				continue
+			}
+
 			await this.generateSummaryForModule(moduleNode.modulePath)
 		}
 	}

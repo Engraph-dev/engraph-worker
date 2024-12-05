@@ -13,7 +13,7 @@ export type ParseArgs = {
 export interface IParser {
 	dependencyGraph: DependencyGraph
 	getPathRelativeToProjectRoot: (fullPath: string) => string
-	validateProject: () => void
+	validateProject: (() => StatusCode) | (() => Promise<StatusCode>)
 	parseProject: (() => Promise<any>) | (() => any)
 }
 
@@ -32,7 +32,7 @@ export class Parser implements IParser, IParserMetadata {
 		this.projectType = parseArgs.projectType
 	}
 
-	validateProject(): StatusCode {
+	validateProject() {
 		return StatusCode.OK
 	}
 
