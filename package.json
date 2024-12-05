@@ -1,48 +1,48 @@
 {
-  "name": "project-parser",
-  "version": "1.0.0",
-  "description": "Generates dependency graphs from a project",
-  "main": "src/index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx ts-node src/index.ts",
-    "start": "node dist/cli.js",
-    "build": "npx tsc && npx resolve-tspaths",
-    "prepare": "husky && husky install"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Engraph-dev/engraph-worker.git"
-  },
-  "keywords": [
-    "dependency",
-    "tree",
-    "engraph"
-  ],
-  "author": "Engraph.dev",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Engraph-dev/engraph-worker/issues"
-  },
-  "homepage": "https://github.com/Engraph-dev/engraph-worker#readme",
-  "dependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
-    "@types/node": "^22.10.1",
-    "dotenv": "^16.4.5",
-    "openai": "^4.73.1",
-    "resolve-tspaths": "^0.8.22",
-    "tree-sitter": "^0.21.1",
-    "ts-morph": "^24.0.0",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.2"
-  },
-  "devDependencies": {
-    "husky": "^9.1.6",
-    "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3"
-  },
-  "lint-staged": {
-    "*.{js,css,md}": "prettier --write"
-  }
+	"name": "project-parser",
+	"version": "1.0.0",
+	"description": "Generates dependency graphs from a project",
+	"main": "src/index.ts",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "npx ts-node src/index.ts",
+		"start": "node dist/cli.js",
+		"build": "npx tsc && npx resolve-tspaths",
+		"prepare": "husky && husky install"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Engraph-dev/engraph-worker.git"
+	},
+	"keywords": [
+		"dependency",
+		"tree",
+		"engraph"
+	],
+	"author": "Engraph.dev",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Engraph-dev/engraph-worker/issues"
+	},
+	"homepage": "https://github.com/Engraph-dev/engraph-worker#readme",
+	"dependencies": {
+		"@trivago/prettier-plugin-sort-imports": "^4.3.0",
+		"@types/node": "^22.10.1",
+		"dotenv": "^16.4.5",
+		"openai": "^4.73.1",
+		"resolve-tspaths": "^0.8.22",
+		"tree-sitter": "^0.21.1",
+		"ts-morph": "^24.0.0",
+		"ts-node": "^10.9.2",
+		"tsconfig-paths": "^4.2.0",
+		"typescript": "^5.7.2"
+	},
+	"devDependencies": {
+		"husky": "^9.1.6",
+		"lint-staged": "^15.2.10",
+		"prettier": "^3.3.3"
+	},
+	"lint-staged": {
+		"*.{ts,tsx,js,css,md}": "prettier --write"
+	}
 }
