@@ -12,6 +12,7 @@ import {
 	openAiClient,
 } from "@/util/ai"
 import { LogLevel, log } from "@/util/log"
+import { rateLimit } from "@/util/ratelimit"
 
 export class ContextGraph {
 	dependencyGraph: DependencyGraph
@@ -151,6 +152,8 @@ export class ContextGraph {
 				}
 			}),
 		]
+
+		await rateLimit()
 
 		const aiResponse = await openAiClient.chat.completions.create({
 			model: MODEL,
@@ -314,6 +317,8 @@ export class ContextGraph {
 				}
 			}),
 		]
+
+		await rateLimit()
 
 		const aiResponse = await openAiClient.chat.completions.create({
 			model: MODEL,
