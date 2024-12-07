@@ -1,10 +1,11 @@
 node_modules
 
 # Outputs and Builds
-dist
 *.tsbuildinfo
 
 # Development cache files
 cache
 .env
 
+dist/*
+!dist/ignore.txt
