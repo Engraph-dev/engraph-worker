@@ -5,13 +5,13 @@ import { ProjectType } from "@/common/parser/project"
 import { isStatusCode } from "@/util/process"
 import dotenv from "dotenv"
 import fsSync from "fs"
-import process from "process"
 
 dotenv.config()
 
 async function main() {
 	const projectParser = await createParser({
 		projectPath: process.cwd(),
+		// projectPath: "tests/ts.esnext.nodenext.nodenext/1-basic-imports",
 		projectEntryPoint: "index.ts",
 		projectType: ProjectType["ts.esnext.nodenext.nodenext"],
 	})

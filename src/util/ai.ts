@@ -5,14 +5,18 @@ import { OpenAI } from "openai"
 
 dotenv.config()
 
-export const MODEL = "gpt-3.5-turbo"
+export const MODEL = "gpt-4o-mini"
+
+export const SYMBOL_SUMMARY_WORD_COUNT = 100
+export const MODULE_SUMMARY_WORD_COUNT = 200
 
 export const SYSTEM_PROMPT =
-	"You are an expert at documenting source code. " +
-	"You will be given a snippet of code along with summaries of related code snippets. " +
-	"You generate clear and concise documentation, and DO NOT include your own opinions. " +
+	"You are an expert at documenting source code. Your only task is to document source code. " +
 	"The user is a programmer, and is always correct. DO NOT try to correct the programmer. " +
-	"Always answer in SIMPLE ENGLISH, PLAIN TEXT, with NO FORMATTING"
+	"You will be given code along with summaries of related code. " +
+	"DO NOT include your own opinions. DO NOT assume and DO NOT explain how the code can be used further. " +
+	"Always answer in SIMPLE ENGLISH, PLAIN TEXT, with NO FORMATTING. " +
+	"DO NOT start your answers with 'this code' 'the code' 'the given' or related phrases. "
 
 export const openAiClient = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
@@ -35,7 +39,8 @@ export function generateMessageForSymbol(
 
 	const mergedSummaries = [...summarisedSymbols, ...summarisedModules]
 
-	const userMessage = `Generate a 50 WORD summary for the following code. The source code is - \n\`\`\`${symbolSourceCode}\`\`\``
+	// const userMessage = `Generate a ${SYMBOL_SUMMARY_WORD_COUNT} WORD summary\n\`\`\`${symbolSourceCode}\`\`\``
+	const userMessage = `\`\`\`${symbolSourceCode}\`\`\``
 
 	return {
 		assistantMessages: mergedSummaries,
@@ -59,7 +64,8 @@ export function generateMessageForModule(
 
 	const mergedSummaries = [...summarisedSymbols, ...summarisedModules]
 
-	const userMessage = `Generate a 50 WORD summary for the following code. The source code is - \n\`\`\`${moduleSourceCode}\`\`\``
+	// const userMessage = `Generate a ${MODULE_SUMMARY_WORD_COUNT} WORD summary\n\`\`\`${moduleSourceCode}\`\`\``
+	const userMessage = `\`\`\`${moduleSourceCode}\`\`\``
 
 	return {
 		assistantMessages: mergedSummaries,
