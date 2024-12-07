@@ -5,7 +5,9 @@ import { OpenAI } from "openai"
 
 dotenv.config()
 
-export const MODEL = "gpt-4o-mini"
+export type Model = "gpt-4o-mini" | "gpt-4" | "gpt-4o" | "gpt-3.5-turbo"
+
+export const MODEL: Model = "gpt-4o-mini"
 
 export const SYMBOL_SUMMARY_WORD_COUNT = 100
 export const MODULE_SUMMARY_WORD_COUNT = 200

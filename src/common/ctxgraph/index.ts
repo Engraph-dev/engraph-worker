@@ -14,10 +14,29 @@ import {
 import { LogLevel, log } from "@/util/log"
 import { rateLimit } from "@/util/ratelimit"
 
+type ContextMetrics = {
+	totalPromptTokens: number
+	totalCompletionTokens: number
+	totalSymbolsProcessed: number
+	totalModulesProcessed: number
+	totalSymbolsNotProcessed: number
+	totalModulesNotProcessed: number
+}
+
 export class ContextGraph {
 	dependencyGraph: DependencyGraph
+	contextMetrics: ContextMetrics
+
 	constructor(depGraph: DependencyGraph) {
 		this.dependencyGraph = depGraph
+		this.contextMetrics = {
+			totalPromptTokens: 0,
+			totalCompletionTokens: 0,
+			totalSymbolsProcessed: 0,
+			totalModulesProcessed: 0,
+			totalSymbolsNotProcessed: 0,
+			totalModulesNotProcessed: 0,
+		}
 	}
 
 	async generateSummaryForSymbol(
@@ -163,22 +182,25 @@ export class ContextGraph {
 
 		if (aiResponse.choices.length) {
 			const responseSummary = aiResponse.choices[0].message.content
-			const promptTokens = aiResponse.usage?.prompt_tokens ?? "unknown"
-			const completionTokens =
-				aiResponse.usage?.completion_tokens ?? "unknown"
+			const promptTokens = aiResponse.usage?.prompt_tokens ?? 0
+			const completionTokens = aiResponse.usage?.completion_tokens ?? 0
 
 			log(
-				"ctxgraph.symbol.summary.response",
+				"ctxgraph.symbol.summary",
 				LogLevel.Debug,
 				`Symbol ${symbolIdentifier} (${symbolPath}) - ${responseSummary}`,
 			)
 			log(
-				"ctxgraph",
+				"ctxgraph.symbol.metrics",
 				LogLevel.Debug,
 				`Consumed ${promptTokens} prompt tokens, ${completionTokens} completion tokens to generate summary for ${symbolIdentifier}`,
 			)
+
+			this.contextMetrics.totalPromptTokens += promptTokens
+			this.contextMetrics.totalCompletionTokens += completionTokens
+
 			this.dependencyGraph.updateSymbol(symbolPath, symbolIdentifier, {
-				symbolSummary: responseSummary || undefined,
+				symbolSummary: responseSummary ?? "",
 			})
 		}
 	}
@@ -328,22 +350,25 @@ export class ContextGraph {
 
 		if (aiResponse.choices.length) {
 			const responseSummary = aiResponse.choices[0].message.content
-			const promptTokens = aiResponse.usage?.prompt_tokens ?? "unknown"
-			const completionTokens =
-				aiResponse.usage?.completion_tokens ?? "unknown"
+			const promptTokens = aiResponse.usage?.prompt_tokens ?? 0
+			const completionTokens = aiResponse.usage?.completion_tokens ?? 0
 
 			log(
-				"ctxgraph",
+				"ctxgraph.module.summary",
 				LogLevel.Debug,
 				`Module ${modulePath} - ${responseSummary}`,
 			)
 			log(
-				"ctxgraph",
+				"ctxgraph.module.metrics",
 				LogLevel.Debug,
 				`Consumed ${promptTokens} prompt tokens, ${completionTokens} completion tokens to generate summary for ${modulePath}`,
 			)
+
+			this.contextMetrics.totalPromptTokens += promptTokens
+			this.contextMetrics.totalCompletionTokens += completionTokens
+
 			this.dependencyGraph.updateModule(modulePath, {
-				moduleSummary: responseSummary || undefined,
+				moduleSummary: responseSummary ?? "",
 			})
 		}
 	}
@@ -351,9 +376,11 @@ export class ContextGraph {
 	async generateContext() {
 		for (const symbolNode of this.dependencyGraph.symbolNodes) {
 			if (symbolNode.symbolPath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
+				this.contextMetrics.totalSymbolsNotProcessed += 1
 				continue
 			}
 
+			this.contextMetrics.totalSymbolsProcessed += 1
 			await this.generateSummaryForSymbol(
 				symbolNode.symbolPath,
 				symbolNode.symbolIdentifier,
@@ -362,10 +389,14 @@ export class ContextGraph {
 
 		for (const moduleNode of this.dependencyGraph.moduleNodes) {
 			if (moduleNode.modulePath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
+				this.contextMetrics.totalModulesNotProcessed += 1
 				continue
 			}
 
+			this.contextMetrics.totalModulesProcessed += 1
 			await this.generateSummaryForModule(moduleNode.modulePath)
 		}
+
+		log("ctxgraph.metrics", LogLevel.Debug, this.contextMetrics)
 	}
 }

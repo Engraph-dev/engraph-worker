@@ -1,16 +1,16 @@
-import { MODEL } from "@/util/ai"
+import { MODEL, type Model } from "@/util/ai"
 
-const RPM_MAPPING = {
+const RPM_MAPPING: Record<Model, number> = {
 	"gpt-4": 500,
 	"gpt-4o": 500,
 	"gpt-4o-mini": 500,
 	"gpt-3.5-turbo": 500,
 }
 
-const RPD_MAPPING = {
-	"gpt-4": 10000,
-	"gpt-4o-mini": 10000,
-	"gpt-3.5-turbo": 10000,
+const RPD_MAPPING: Partial<Record<Model, number>> = {
+	// "gpt-4": 10000,
+	// "gpt-4o-mini": 10000,
+	// "gpt-3.5-turbo": 10000,
 }
 
 const MAX_REQUESTS_PER_MINUTE = RPM_MAPPING[MODEL] ?? 50
