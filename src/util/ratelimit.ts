@@ -8,12 +8,12 @@ const RPM_MAPPING: Record<Model, number> = {
 }
 
 const RPD_MAPPING: Partial<Record<Model, number>> = {
-	// "gpt-4": 10000,
-	// "gpt-4o-mini": 10000,
-	// "gpt-3.5-turbo": 10000,
+	"gpt-4": 10000,
+	"gpt-4o-mini": 10000,
+	"gpt-3.5-turbo": 10000,
 }
 
-const MAX_REQUESTS_PER_MINUTE = RPM_MAPPING[MODEL] ?? 50
+const MAX_REQUESTS_PER_MINUTE = Math.floor(RPM_MAPPING[MODEL] ?? 50)
 const MAX_REQUESTS_PER_DAY =
 	RPD_MAPPING[MODEL] ?? MAX_REQUESTS_PER_MINUTE * 60 * 24
 

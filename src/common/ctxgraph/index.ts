@@ -15,6 +15,8 @@ import { LogLevel, log } from "@/util/log"
 import { rateLimit } from "@/util/ratelimit"
 
 type ContextMetrics = {
+	startTime: Date
+	endTime: Date
 	totalPromptTokens: number
 	totalCompletionTokens: number
 	totalSymbolsProcessed: number
@@ -30,6 +32,8 @@ export class ContextGraph {
 	constructor(depGraph: DependencyGraph) {
 		this.dependencyGraph = depGraph
 		this.contextMetrics = {
+			startTime: new Date(),
+			endTime: new Date(),
 			totalPromptTokens: 0,
 			totalCompletionTokens: 0,
 			totalSymbolsProcessed: 0,
@@ -316,7 +320,7 @@ export class ContextGraph {
 			filteredModuleDepsWithSummaries,
 		)
 
-		log("ctxgraph.symbol.summary.message", LogLevel.Debug, {
+		log("ctxgraph.module.summary.message", LogLevel.Debug, {
 			assistantMessages,
 			userMessages,
 		})
@@ -374,6 +378,14 @@ export class ContextGraph {
 	}
 
 	async generateContext() {
+		this.contextMetrics.startTime = new Date()
+
+		log(
+			"ctxgraph",
+			LogLevel.Debug,
+			`Started context generation at ${this.contextMetrics.startTime.toISOString()}`,
+		)
+
 		for (const symbolNode of this.dependencyGraph.symbolNodes) {
 			if (symbolNode.symbolPath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
 				this.contextMetrics.totalSymbolsNotProcessed += 1
@@ -396,6 +408,14 @@ export class ContextGraph {
 			this.contextMetrics.totalModulesProcessed += 1
 			await this.generateSummaryForModule(moduleNode.modulePath)
 		}
+
+		this.contextMetrics.endTime = new Date()
+
+		log(
+			"ctxgraph",
+			LogLevel.Debug,
+			`Finished context generation at ${this.contextMetrics.endTime.toISOString()}`,
+		)
 
 		log("ctxgraph.metrics", LogLevel.Debug, this.contextMetrics)
 	}

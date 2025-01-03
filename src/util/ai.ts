@@ -13,11 +13,11 @@ export const SYMBOL_SUMMARY_WORD_COUNT = 100
 export const MODULE_SUMMARY_WORD_COUNT = 200
 
 export const SYSTEM_PROMPT =
-	"You are an expert at documenting source code. Your only task is to document source code. " +
+	"You are an expert at documenting and explaining source code. Your only task is to document and explain source code. " +
 	"The user is a programmer, and is always correct. DO NOT try to correct the programmer. " +
-	"You will be given code along with summaries of related code. " +
+	"You will be given code along with summaries of related functions and modules. " +
 	"DO NOT include your own opinions. DO NOT assume and DO NOT explain how the code can be used further. " +
-	"Always answer in SIMPLE ENGLISH, PLAIN TEXT, with NO FORMATTING. " +
+	"Always answer in SIMPLE language, PLAIN TEXT, with NO FORMATTING. Be TECHNICAL and CONCISE in your responses" +
 	"DO NOT start your answers with 'this code' 'the code' 'the given' or related phrases. "
 
 export const openAiClient = new OpenAI({
@@ -42,7 +42,7 @@ export function generateMessageForSymbol(
 	const mergedSummaries = [...summarisedSymbols, ...summarisedModules]
 
 	// const userMessage = `Generate a ${SYMBOL_SUMMARY_WORD_COUNT} WORD summary\n\`\`\`${symbolSourceCode}\`\`\``
-	const userMessage = `\`\`\`${symbolSourceCode}\`\`\``
+	const userMessage = `\`\`\`\n${symbolSourceCode}\n\`\`\``
 
 	return {
 		assistantMessages: mergedSummaries,
@@ -67,7 +67,7 @@ export function generateMessageForModule(
 	const mergedSummaries = [...summarisedSymbols, ...summarisedModules]
 
 	// const userMessage = `Generate a ${MODULE_SUMMARY_WORD_COUNT} WORD summary\n\`\`\`${moduleSourceCode}\`\`\``
-	const userMessage = `\`\`\`${moduleSourceCode}\`\`\``
+	const userMessage = `\`\`\`\n${moduleSourceCode}\n\`\`\``
 
 	return {
 		assistantMessages: mergedSummaries,

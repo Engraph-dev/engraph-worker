@@ -87,7 +87,7 @@ class TSEsNextNodeNextNodeNextParser extends Parser {
 					? this.getPathRelativeToProjectRoot(
 							sourceFile.getFilePath(),
 						)
-					: // Prefix it with @ for non-resolved modules
+					: // Prefix it with UNRESOLVED_MODULE_PREFIX for non-resolved modules
 						`${UNRESOLVED_MODULE_PREFIX}${importDeclaration.getModuleSpecifierValue()}`
 
 				if (modulePath.startsWith(UNRESOLVED_MODULE_PREFIX)) {

@@ -10,10 +10,11 @@ dotenv.config()
 
 async function main() {
 	const projectParser = await createParser({
-		projectPath: process.cwd(),
+		// projectPath: process.cwd(),
 		// projectPath: "tests/ts.esnext.nodenext.nodenext/1-basic-imports",
+		projectPath: "tests/typescript/2-poisoned-source",
 		projectEntryPoint: "index.ts",
-		projectType: ProjectType["ts.esnext.nodenext.nodenext"],
+		projectType: ProjectType["typescript"],
 	})
 
 	if (isStatusCode(projectParser)) {
