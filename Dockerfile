@@ -20,7 +20,7 @@ RUN ["npm", "ci"]
 # Copy source files
 COPY src /services/engraph-worker/src
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Build the server files, output will be stored in dist
 RUN ["npm", "run", "build"]
