@@ -60,4 +60,8 @@ function output() {
 	fsSync.writeFileSync("cache/out.txt", aggregateSummary)
 }
 
-main().then(() => output())
+// main().then(() => output())
+
+while (true) {
+	// Keep this running as of now, will eventually write a server for this later
+}
