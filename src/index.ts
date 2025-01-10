@@ -9,13 +9,15 @@ import fsSync from "fs"
 dotenv.config()
 
 async function main() {
-	const projectParser = await createParser({
+	const parserArgs = {
 		// projectPath: process.cwd(),
 		// projectPath: "tests/ts.esnext.nodenext.nodenext/1-basic-imports",
-		projectPath: "tests/typescript/2-poisoned-source",
+		projectPath: "tests/typescript/3-complex-implementation",
 		projectEntryPoint: "index.ts",
 		projectType: ProjectType["typescript"],
-	})
+	}
+
+	const projectParser = await createParser(parserArgs)
 
 	if (isStatusCode(projectParser)) {
 		return
@@ -25,7 +27,7 @@ async function main() {
 
 	const dependencyGraph = projectParser.dependencyGraph
 
-	const ctxGraph = new ContextGraph(dependencyGraph)
+	const ctxGraph = new ContextGraph(parserArgs, dependencyGraph)
 
 	await ctxGraph.generateContext()
 
@@ -46,18 +48,18 @@ function output() {
 	let aggregateSummary = ""
 
 	moduleNodes.forEach((moduleNode) => {
-		aggregateSummary += `Path: ${moduleNode.modulePath}\n`
-		aggregateSummary += `Source Code: ${moduleNode.moduleSourceCode}\n`
-		aggregateSummary += `Summary: ${moduleNode.moduleSummary ?? "Summary Not Generated"}\n`
+		aggregateSummary += `Path: \`${moduleNode.modulePath}\`\n`
+		aggregateSummary += `Source Code:\n\`\`\`${moduleNode.moduleSourceCode}\n\`\`\`\n`
+		aggregateSummary += `Summary:\n${moduleNode.moduleSummary ?? "Summary Not Generated"}\n`
 	})
 
 	symbolNodes.forEach((symbolNode) => {
-		aggregateSummary += `Path: ${symbolNode.symbolPath} ${symbolNode.symbolIdentifier}\n`
-		aggregateSummary += `Source Code:${symbolNode.symbolSourceCode}\n`
-		aggregateSummary += `Summary: ${symbolNode.symbolSummary ?? "Summary Not Generated"}\n\n`
+		aggregateSummary += `Path:\`${symbolNode.symbolPath}:${symbolNode.symbolIdentifier}\`\n`
+		aggregateSummary += `Source Code:\n \`\`\`${symbolNode.symbolSourceCode}\n\`\`\`\n`
+		aggregateSummary += `Summary:\n${symbolNode.symbolSummary ?? "Summary Not Generated"}\n\n`
 	})
 
-	fsSync.writeFileSync("cache/out.txt", aggregateSummary)
+	fsSync.writeFileSync("cache/docs.md", aggregateSummary)
 }
 
 // main().then(() => output())

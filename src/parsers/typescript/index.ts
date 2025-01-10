@@ -132,6 +132,13 @@ class TSEsNextNodeNextNodeNextParser extends Parser {
 					symbolSourceCode: mergedDeclarations,
 					symbolType: SymbolType.Unknown,
 				})
+
+				// Implicitly add a module dependency to it's own file for each export
+				this.dependencyGraph.addModuleToSymbolDependency({
+					dependentModulePath: relativeFilePath,
+					dependencySymbolIdentifier: exportName,
+					dependencySymbolPath: relativeFilePath,
+				})
 			}
 		})
 
