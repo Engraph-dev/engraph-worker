@@ -1,7 +1,6 @@
 import db from "@/util/db"
 import { LogLevel, log } from "@/util/log"
 import { StatusCode } from "@/util/process"
-import { deleteSQSMessage } from "@/util/sqs"
 import type { WorkflowHandlerFunction } from "@/util/worker/common"
 import { githubWorkflowHandler } from "@/util/worker/github"
 import {
@@ -16,11 +15,10 @@ const workflowHandlerMap: Record<ProjectSourceType, WorkflowHandlerFunction> = {
 
 type StartWorkflowArgs = {
 	workflowId: Workflow["workflowId"]
-	sqsHandle: string
 }
 
 export async function startWorkflow(args: StartWorkflowArgs) {
-	const { sqsHandle, workflowId } = args
+	const { workflowId } = args
 	const workflowDoc = await db.workflow.findFirst({
 		where: {
 			workflowId: workflowId,
@@ -44,8 +42,6 @@ export async function startWorkflow(args: StartWorkflowArgs) {
 		)
 		return StatusCode.InvalidWorkflow
 	}
-
-	await deleteSQSMessage(sqsHandle)
 
 	const { projectSourceType } = workflowDoc.workflowProject
 	const targetWorkflowHandler = workflowHandlerMap[projectSourceType]
