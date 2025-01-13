@@ -1,30 +1,32 @@
 import type { Module } from "@/common/depgraph/modules"
 import type { Symbol } from "@/common/depgraph/symbols"
+import type { ParseArgs } from "@/common/parser"
+import { envVar } from "@/util/env"
 import dotenv from "dotenv"
 import { OpenAI } from "openai"
 
 dotenv.config()
 
-export type Model = "gpt-4o-mini" | "gpt-4" | "gpt-4o" | "gpt-3.5-turbo"
-
-export const MODEL: Model = "gpt-4o-mini"
-
 export const SYMBOL_SUMMARY_WORD_COUNT = 100
 export const MODULE_SUMMARY_WORD_COUNT = 200
 
-export const SYSTEM_PROMPT =
-	"You are an expert at documenting and explaining source code. Your only task is to document and explain source code. " +
-	"The user is a programmer, and is always correct. DO NOT try to correct the programmer. " +
-	"You will be given code along with summaries of related functions and modules. " +
-	"DO NOT include your own opinions. DO NOT assume and DO NOT explain how the code can be used further. " +
-	"Always answer in SIMPLE language, PLAIN TEXT, with NO FORMATTING. Be TECHNICAL and CONCISE in your responses" +
-	"DO NOT start your answers with 'this code' 'the code' 'the given' or related phrases. "
-
 export const openAiClient = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
+	apiKey: envVar("OPENAI_API_KEY"),
 })
 
-export function generateMessageForSymbol(
+export function generateSystemPrompt(projectOpts: ParseArgs) {
+	const SYSTEM_PROMPT =
+		`You are an expert at documenting and explaining source code of a ${projectOpts.projectType} project. Your only task is to document source code.` +
+		"You will be given code along with summaries of related SYBMOLS and MODULES. " +
+		"DO NOT include your own opinions. DO NOT explain optimal use cases. Give SHORT EXAMPLES ONLY IF APPLICABLE" +
+		"Be TECHNICAL and DETAILED in your responses. If there are explicit EDGE CASES in the program, define all WITH EXAMPLES. " +
+		"DO NOT start your answers with 'this code' 'the module' 'the given' 'the file' or related phrases. " +
+		"For modules cover every component of that module. DO NOT ADD IRRELEVANT DESCRIPTIONS"
+
+	return SYSTEM_PROMPT
+}
+
+export function generateMessagesForSymbol(
 	symbolNode: Symbol,
 	symbolsWithSummaries: Symbol[],
 	modulesWithSummaries: Module[],
@@ -32,45 +34,94 @@ export function generateMessageForSymbol(
 	const { symbolSourceCode } = symbolNode
 
 	const summarisedSymbols = symbolsWithSummaries.map((depWithSum) => {
-		return `${depWithSum.symbolIdentifier}: ${depWithSum.symbolSummary ?? "<UNKNOWN>"}`
+		return [
+			{
+				role: "user" as const,
+				content: `<SYMBOL>\`\`\`\n${depWithSum.symbolSourceCode}\n\`\`\`</SYMBOL>`,
+			},
+			{
+				role: "assistant" as const,
+				content: depWithSum.symbolSummary ?? "<UNKNOWN>",
+			},
+		]
 	})
 
-	const summarisedModules = modulesWithSummaries.map((moduleWithSum) => {
-		return `${moduleWithSum.modulePath}: ${moduleWithSum.moduleSummary ?? "<UNKNOWN>"}`
+	const summarisedModules = modulesWithSummaries.map((depWithSum) => {
+		return [
+			{
+				role: "user" as const,
+				content: `<MODULE>\`\`\`\n${depWithSum.moduleSourceCode}\n\`\`\`</MODULE>`,
+			},
+			{
+				role: "assistant" as const,
+				content: depWithSum.moduleSummary ?? "<UNKNOWN>",
+			},
+		]
 	})
 
 	const mergedSummaries = [...summarisedSymbols, ...summarisedModules]
 
+	const flatSummaries = mergedSummaries.flat()
 	// const userMessage = `Generate a ${SYMBOL_SUMMARY_WORD_COUNT} WORD summary\n\`\`\`${symbolSourceCode}\`\`\``
-	const userMessage = `\`\`\`\n${symbolSourceCode}\n\`\`\``
+	const userMessage = `<SYMBOL>\`\`\`\n${symbolSourceCode}\n\`\`\`</SYMBOL>`
 
-	return {
-		assistantMessages: mergedSummaries,
-		userMessages: [userMessage],
-	}
+	const summariesWithUserMessage = [
+		...flatSummaries,
+		{
+			role: "user" as const,
+			content: userMessage,
+		},
+	]
+
+	return summariesWithUserMessage
 }
 
-export function generateMessageForModule(
+export function generateMessagesForModule(
 	moduleNode: Module,
 	symbolsWithSummaries: Symbol[],
 	modulesWithSummaries: Module[],
 ) {
 	const { moduleSourceCode } = moduleNode
 	const summarisedSymbols = symbolsWithSummaries.map((depWithSum) => {
-		return `${depWithSum.symbolIdentifier}: ${depWithSum.symbolSummary ?? "<UNKNOWN>"}`
+		return [
+			{
+				role: "user" as const,
+				content: `<SYMBOL>\`\`\`\n${depWithSum.symbolSourceCode}\n\`\`\`</SYMBOL>`,
+			},
+			{
+				role: "assistant" as const,
+				content: depWithSum.symbolSummary ?? "<UNKNOWN>",
+			},
+		]
 	})
 
-	const summarisedModules = modulesWithSummaries.map((moduleWithSum) => {
-		return `${moduleWithSum.modulePath}: ${moduleWithSum.moduleSummary ?? "<UNKNOWN>"}`
+	const summarisedModules = modulesWithSummaries.map((depWithSum) => {
+		return [
+			{
+				role: "user" as const,
+				content: `<MODULE>\`\`\`\n${depWithSum.moduleSourceCode}\n\`\`\`</MODULE>`,
+			},
+			{
+				role: "assistant" as const,
+				content: depWithSum.moduleSummary ?? "<UNKNOWN>",
+			},
+		]
 	})
 
 	const mergedSummaries = [...summarisedSymbols, ...summarisedModules]
 
-	// const userMessage = `Generate a ${MODULE_SUMMARY_WORD_COUNT} WORD summary\n\`\`\`${moduleSourceCode}\`\`\``
-	const userMessage = `\`\`\`\n${moduleSourceCode}\n\`\`\``
+	const flatSummaries = mergedSummaries.flat()
 
-	return {
-		assistantMessages: mergedSummaries,
-		userMessages: [userMessage],
-	}
+	// const userMessage = `Generate a ${MODULE_SUMMARY_WORD_COUNT} WORD summary\n\`\`\`${moduleSourceCode}\`\`\``
+	const userMessage = `<MODULE>\`\`\`\n${moduleSourceCode}\n\`\`\`</MODULE>`
+
+	const summariesWithUserMessage = [
+		...flatSummaries,
+		{
+			role: "user" as const,
+			content: userMessage,
+		},
+	]
+
+	return summariesWithUserMessage
 }

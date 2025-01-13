@@ -4,13 +4,14 @@ import {
 } from "@/common/depgraph"
 import type { Module } from "@/common/depgraph/modules"
 import type { Symbol } from "@/common/depgraph/symbols"
+import type { ParseArgs } from "@/common/parser"
 import {
-	MODEL,
-	SYSTEM_PROMPT,
-	generateMessageForModule,
-	generateMessageForSymbol,
+	generateMessagesForModule,
+	generateMessagesForSymbol,
+	generateSystemPrompt,
 	openAiClient,
 } from "@/util/ai"
+import { MODEL } from "@/util/config/ai"
 import { LogLevel, log } from "@/util/log"
 import { rateLimit } from "@/util/ratelimit"
 
@@ -26,10 +27,12 @@ type ContextMetrics = {
 }
 
 export class ContextGraph {
+	parserArgs: ParseArgs
 	dependencyGraph: DependencyGraph
 	contextMetrics: ContextMetrics
 
-	constructor(depGraph: DependencyGraph) {
+	constructor(parserArgs: ParseArgs, depGraph: DependencyGraph) {
+		this.parserArgs = parserArgs
 		this.dependencyGraph = depGraph
 		this.contextMetrics = {
 			startTime: new Date(),
@@ -47,6 +50,8 @@ export class ContextGraph {
 		symbolPath: Symbol["symbolPath"],
 		symbolIdentifier: Symbol["symbolIdentifier"],
 	) {
+		const SYSTEM_PROMPT = generateSystemPrompt(this.parserArgs)
+
 		const depgraphSymbol = this.dependencyGraph.getSymbolNode(
 			symbolPath,
 			symbolIdentifier,
@@ -146,15 +151,14 @@ export class ContextGraph {
 				return moduleDepWithSum !== undefined
 			})
 
-		const { assistantMessages, userMessages } = generateMessageForSymbol(
+		const promptMessages = generateMessagesForSymbol(
 			depgraphSymbol,
 			filteredSymbolDepsWithSummaries,
 			filteredModuleDepsWithSummaries,
 		)
 
-		log("ctxgraph.symbol.summary.message", LogLevel.Debug, {
-			assistantMessages,
-			userMessages,
+		log("ctxgraph.symbol.summary.messages", LogLevel.Debug, {
+			promptMessages,
 		})
 
 		const completionMessages = [
@@ -162,18 +166,7 @@ export class ContextGraph {
 				role: "system" as const,
 				content: SYSTEM_PROMPT,
 			},
-			...assistantMessages.map((assistantMessage) => {
-				return {
-					role: "assistant" as const,
-					content: assistantMessage,
-				}
-			}),
-			...userMessages.map((assistantMessage) => {
-				return {
-					role: "user" as const,
-					content: assistantMessage,
-				}
-			}),
+			...promptMessages,
 		]
 
 		await rateLimit()
@@ -210,6 +203,8 @@ export class ContextGraph {
 	}
 
 	async generateSummaryForModule(modulePath: Module["modulePath"]) {
+		const SYSTEM_PROMPT = generateSystemPrompt(this.parserArgs)
+
 		const depgraphModule = this.dependencyGraph.getModuleNode(modulePath)
 		if (!depgraphModule) {
 			return
@@ -314,15 +309,14 @@ export class ContextGraph {
 				return moduleDepWithSum !== undefined
 			})
 
-		const { assistantMessages, userMessages } = generateMessageForModule(
+		const promptMessages = generateMessagesForModule(
 			depgraphModule,
 			filteredSymbolDepsWithSummaries,
 			filteredModuleDepsWithSummaries,
 		)
 
-		log("ctxgraph.module.summary.message", LogLevel.Debug, {
-			assistantMessages,
-			userMessages,
+		log("ctxgraph.module.summary.messages", LogLevel.Debug, {
+			promptMessages,
 		})
 
 		const completionMessages = [
@@ -330,18 +324,7 @@ export class ContextGraph {
 				role: "system" as const,
 				content: SYSTEM_PROMPT,
 			},
-			...assistantMessages.map((assistantMessage) => {
-				return {
-					role: "assistant" as const,
-					content: assistantMessage,
-				}
-			}),
-			...userMessages.map((assistantMessage) => {
-				return {
-					role: "user" as const,
-					content: assistantMessage,
-				}
-			}),
+			...promptMessages,
 		]
 
 		await rateLimit()
@@ -386,6 +369,16 @@ export class ContextGraph {
 			`Started context generation at ${this.contextMetrics.startTime.toISOString()}`,
 		)
 
+		for (const moduleNode of this.dependencyGraph.moduleNodes) {
+			if (moduleNode.modulePath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
+				this.contextMetrics.totalModulesNotProcessed += 1
+				continue
+			}
+
+			this.contextMetrics.totalModulesProcessed += 1
+			await this.generateSummaryForModule(moduleNode.modulePath)
+		}
+
 		for (const symbolNode of this.dependencyGraph.symbolNodes) {
 			if (symbolNode.symbolPath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
 				this.contextMetrics.totalSymbolsNotProcessed += 1
@@ -397,16 +390,6 @@ export class ContextGraph {
 				symbolNode.symbolPath,
 				symbolNode.symbolIdentifier,
 			)
-		}
-
-		for (const moduleNode of this.dependencyGraph.moduleNodes) {
-			if (moduleNode.modulePath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
-				this.contextMetrics.totalModulesNotProcessed += 1
-				continue
-			}
-
-			this.contextMetrics.totalModulesProcessed += 1
-			await this.generateSummaryForModule(moduleNode.modulePath)
 		}
 
 		this.contextMetrics.endTime = new Date()
