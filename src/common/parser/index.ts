@@ -1,7 +1,7 @@
 import { DependencyGraph } from "@/common/depgraph"
-import type { ProjectType } from "@/common/parser/project"
 import { LogLevel, log } from "@/util/log"
 import { StatusCode } from "@/util/process"
+import type { ProjectType } from "@prisma/client"
 import path from "path"
 
 export type ParseArgs = {
@@ -12,6 +12,8 @@ export type ParseArgs = {
 
 export interface IParser {
 	dependencyGraph: DependencyGraph
+	getDependencyGraph: () => DependencyGraph
+	loadDependencyGraph: (depGraph: DependencyGraph) => DependencyGraph
 	getPathRelativeToProjectRoot: (fullPath: string) => string
 	validateProject: (() => StatusCode) | (() => Promise<StatusCode>)
 	parseProject: (() => Promise<any>) | (() => any)
@@ -30,6 +32,15 @@ export class Parser implements IParser, IParserMetadata {
 		this.projectPath = parseArgs.projectPath
 		this.projectEntryPoint = parseArgs.projectEntryPoint
 		this.projectType = parseArgs.projectType
+	}
+
+	getDependencyGraph() {
+		return this.dependencyGraph
+	}
+
+	loadDependencyGraph(depGraph: DependencyGraph) {
+		this.dependencyGraph = depGraph
+		return this.dependencyGraph
 	}
 
 	validateProject() {

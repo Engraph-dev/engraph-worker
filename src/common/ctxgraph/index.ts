@@ -6,12 +6,12 @@ import type { Module } from "@/common/depgraph/modules"
 import type { Symbol } from "@/common/depgraph/symbols"
 import type { ParseArgs } from "@/common/parser"
 import {
-	MODEL,
-	generateMessageForModule,
-	generateMessageForSymbol,
+	generateMessagesForModule,
+	generateMessagesForSymbol,
 	generateSystemPrompt,
 	openAiClient,
 } from "@/util/ai"
+import { MODEL } from "@/util/config/ai"
 import { LogLevel, log } from "@/util/log"
 import { rateLimit } from "@/util/ratelimit"
 
@@ -151,15 +151,14 @@ export class ContextGraph {
 				return moduleDepWithSum !== undefined
 			})
 
-		const { assistantMessages, userMessages } = generateMessageForSymbol(
+		const promptMessages = generateMessagesForSymbol(
 			depgraphSymbol,
 			filteredSymbolDepsWithSummaries,
 			filteredModuleDepsWithSummaries,
 		)
 
-		log("ctxgraph.symbol.summary.message", LogLevel.Debug, {
-			assistantMessages,
-			userMessages,
+		log("ctxgraph.symbol.summary.messages", LogLevel.Debug, {
+			promptMessages,
 		})
 
 		const completionMessages = [
@@ -167,18 +166,7 @@ export class ContextGraph {
 				role: "system" as const,
 				content: SYSTEM_PROMPT,
 			},
-			...assistantMessages.map((assistantMessage) => {
-				return {
-					role: "assistant" as const,
-					content: assistantMessage,
-				}
-			}),
-			...userMessages.map((assistantMessage) => {
-				return {
-					role: "user" as const,
-					content: assistantMessage,
-				}
-			}),
+			...promptMessages,
 		]
 
 		await rateLimit()
@@ -321,15 +309,14 @@ export class ContextGraph {
 				return moduleDepWithSum !== undefined
 			})
 
-		const { assistantMessages, userMessages } = generateMessageForModule(
+		const promptMessages = generateMessagesForModule(
 			depgraphModule,
 			filteredSymbolDepsWithSummaries,
 			filteredModuleDepsWithSummaries,
 		)
 
-		log("ctxgraph.module.summary.message", LogLevel.Debug, {
-			assistantMessages,
-			userMessages,
+		log("ctxgraph.module.summary.messages", LogLevel.Debug, {
+			promptMessages,
 		})
 
 		const completionMessages = [
@@ -337,18 +324,7 @@ export class ContextGraph {
 				role: "system" as const,
 				content: SYSTEM_PROMPT,
 			},
-			...assistantMessages.map((assistantMessage) => {
-				return {
-					role: "assistant" as const,
-					content: assistantMessage,
-				}
-			}),
-			...userMessages.map((assistantMessage) => {
-				return {
-					role: "user" as const,
-					content: assistantMessage,
-				}
-			}),
+			...promptMessages,
 		]
 
 		await rateLimit()

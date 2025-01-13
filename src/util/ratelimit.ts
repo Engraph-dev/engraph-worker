@@ -1,4 +1,5 @@
-import { MODEL, type Model } from "@/util/ai"
+import { MODEL, type Model } from "@/util/config/ai"
+import { timeout } from "@/util/time"
 
 const RPM_MAPPING: Record<Model, number> = {
 	"gpt-4": 500,
@@ -23,12 +24,5 @@ const RPD_SCALED_RPM = Math.floor(MAX_REQUESTS_PER_DAY / (60 * 24))
 const REQUESTS_PER_MINUTE = Math.min(MAX_REQUESTS_PER_MINUTE, RPD_SCALED_RPM)
 
 export async function rateLimit() {
-	return new Promise<void>((resolve, reject) => {
-		setTimeout(
-			() => {
-				resolve()
-			},
-			(1000 * 60) / REQUESTS_PER_MINUTE,
-		)
-	})
+	return timeout((1000 * 60) / REQUESTS_PER_MINUTE)
 }

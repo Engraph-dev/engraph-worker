@@ -20,18 +20,14 @@ const tsOpts = {
 	strict: true,
 } satisfies Partial<ts.CompilerOptions>
 
-class TSEsNextNodeNextNodeNextParser extends Parser {
+class TypescriptParser extends Parser {
 	tsProject: Project
 	tsConfigPath: string
 
 	constructor(parseArgs: ParseArgs) {
 		super(parseArgs)
 
-		this.tsConfigPath = path.resolve(
-			process.cwd(),
-			this.projectPath,
-			"tsconfig.json",
-		)
+		this.tsConfigPath = path.resolve(this.projectPath, "tsconfig.json")
 
 		const validationStatus = this.validateProject()
 
@@ -46,17 +42,11 @@ class TSEsNextNodeNextNodeNextParser extends Parser {
 	}
 
 	validateProject(): StatusCode {
-		const fileExists = fsSync.statSync(this.tsConfigPath, {
-			throwIfNoEntry: false,
-		})
-
-		// If file doesn't exist, quit with error
-		if (!fileExists) {
-			log(
-				"parser.ts.esnext.nodenext.nodenext",
-				LogLevel.Error,
-				`TSConfig does not exist: ${this.tsConfigPath}`,
-			)
+		try {
+			const fileExists = fsSync.statSync(this.tsConfigPath)
+		} catch (e) {
+			// If file doesn't exist, quit with error
+			log("parser.typescript", LogLevel.Error, e)
 			return StatusCode.BadProject
 		}
 
@@ -142,14 +132,10 @@ class TSEsNextNodeNextNodeNextParser extends Parser {
 			}
 		})
 
-		log(
-			"parser.ts.esnext.nodenext.nodenext",
-			LogLevel.Debug,
-			this.dependencyGraph,
-		)
+		log("parser.typescript", LogLevel.Debug, this.dependencyGraph)
 
 		return
 	}
 }
 
-export default TSEsNextNodeNextNodeNextParser
+export default TypescriptParser
