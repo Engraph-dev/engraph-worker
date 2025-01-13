@@ -1,7 +1,7 @@
 import { MESSAGE_COOLDOWN_MS } from "@/util/config/worker"
 import { LogLevel, log } from "@/util/log"
 import { StatusCode } from "@/util/process"
-import { receiveSQSMessage } from "@/util/sqs"
+import { deleteSQSMessage, receiveSQSMessage } from "@/util/sqs"
 import { timeout } from "@/util/time"
 import { startWorkflow } from "@/util/worker"
 import dotenv from "dotenv"
@@ -20,9 +20,10 @@ async function workerImpl() {
 				"Received message from SQS",
 				workflowData,
 			)
+
+			await deleteSQSMessage(workflowData.recvHandle)
 			const workflowStatus = await startWorkflow({
 				workflowId: workflowData.workflowId,
-				sqsHandle: workflowData.recvHandle,
 			})
 
 			const reverseLookup = Object.keys(StatusCode)
