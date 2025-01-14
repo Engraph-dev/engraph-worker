@@ -29,6 +29,7 @@
 		"@aws-sdk/client-sqs": "^3.726.1",
 		"@prisma/client": "^6.2.1",
 		"dotenv": "^16.4.5",
+		"neo4j-driver": "^5.27.0",
 		"octokit": "^4.1.0",
 		"openai": "^4.73.1",
 		"prisma": "^6.2.1",
