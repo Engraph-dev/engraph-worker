@@ -39,3 +39,52 @@ async function workerImpl() {
 }
 
 workerImpl()
+
+// async function main() {
+// 	const parserArgs = {
+// 		projectEntryPoint: "",
+// 		projectPath: path.join(
+// 			process.cwd(),
+// 			"tests/typescript/3-complex-implementation",
+// 		),
+// 		projectType: ProjectType.typescript,
+// 	}
+// 	// const testParser = createParser(parserArgs)
+
+// 	// if (isStatusCode(testParser)) {
+// 	// 	return
+// 	// }
+
+// 	// await testParser.parseProject()
+
+// 	// const ctxGraph = new ContextGraph(
+// 	// 	parserArgs,
+// 	// 	testParser.getDependencyGraph(),
+// 	// )
+
+// 	// await ctxGraph.generateContext()
+
+// 	// await fs.writeFile(
+// 	// 	path.resolve(process.cwd(), "cache/ctxgraph.json"),
+// 	// 	JSON.stringify(ctxGraph.dependencyGraph, null, 4),
+// 	// )
+
+// 	const cacheContent = await fs.readFile(
+// 		path.resolve(process.cwd(), "cache/ctxgraph.json"),
+// 		"utf-8",
+// 	)
+
+// 	const preloadGraph = JSON.parse(cacheContent)
+
+// 	const cachedGraph = new ContextGraph(
+// 		parserArgs,
+// 		preloadGraph as DependencyGraph,
+// 	)
+
+// 	await uploadWorkflowSummary({
+// 		workflowId: "do-not-care-uses-root-anyways",
+// 		contextGraph: cachedGraph,
+// 	})
+// }
+
+// main()

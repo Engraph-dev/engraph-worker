@@ -124,7 +124,7 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 	})
 
 	try {
-		await uploadWorkflowSummary({
+		const uploadResult = await uploadWorkflowSummary({
 			workflowId: workflowArgs.workflowId,
 			contextGraph: ctxGraph,
 		})
@@ -137,6 +137,8 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 				workflowStatus: WorkflowStatus.SummaryUploadCompleted,
 			},
 		})
+
+		return uploadResult
 	} catch (e) {
 		await db.workflow.update({
 			where: {
@@ -150,5 +152,5 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 		log("workflow.graph", LogLevel.Error, e)
 	}
 
-	return StatusCode.OK
+	return StatusCode.WorkflowError
 })
