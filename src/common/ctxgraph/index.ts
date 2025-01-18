@@ -26,6 +26,11 @@ type ContextMetrics = {
 	totalModulesNotProcessed: number
 }
 
+/**
+ * READ ME:
+ * This graph generates the full context for a project by generating summaries for all symbols and modules in the project.
+ * As of 19/01/2025, context generation is no longer done worker-side. It will be performed user side
+ */
 export class ContextGraph {
 	parserArgs: ParseArgs
 	dependencyGraph: DependencyGraph

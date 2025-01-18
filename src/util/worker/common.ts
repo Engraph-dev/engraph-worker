@@ -1,4 +1,3 @@
-import { ContextGraph } from "@/common/ctxgraph"
 import { type ParseArgs, createParser } from "@/common/parser"
 import { PROJECT_DIRECTORY } from "@/util/config/worker"
 import db from "@/util/db"
@@ -88,45 +87,45 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 	})
 
 	const depGraph = parserInstance.getDependencyGraph()
-	const ctxGraph = new ContextGraph(parserArgs, depGraph)
+	// const ctxGraph = new ContextGraph(parserArgs, depGraph)
+
+	// await db.workflow.update({
+	// 	where: {
+	// 		workflowId: workflowArgs.workflowId,
+	// 	},
+	// 	data: {
+	// 		workflowStatus: WorkflowStatus.SummaryGenStarted,
+	// 	},
+	// })
+
+	// try {
+	// 	await ctxGraph.generateContext()
+	// } catch (e) {
+	// 	await db.workflow.update({
+	// 		where: {
+	// 			workflowId: workflowArgs.workflowId,
+	// 		},
+	// 		data: {
+	// 			workflowStatus: WorkflowStatus.SummaryGenFailed,
+	// 			workflowEndTimestamp: new Date(),
+	// 		},
+	// 	})
+	// 	log("workflow.graph", LogLevel.Error, e)
+	// }
 
 	await db.workflow.update({
 		where: {
 			workflowId: workflowArgs.workflowId,
 		},
 		data: {
-			workflowStatus: WorkflowStatus.SummaryGenStarted,
-		},
-	})
-
-	try {
-		await ctxGraph.generateContext()
-	} catch (e) {
-		await db.workflow.update({
-			where: {
-				workflowId: workflowArgs.workflowId,
-			},
-			data: {
-				workflowStatus: WorkflowStatus.SummaryGenFailed,
-				workflowEndTimestamp: new Date(),
-			},
-		})
-		log("workflow.graph", LogLevel.Error, e)
-	}
-
-	await db.workflow.update({
-		where: {
-			workflowId: workflowArgs.workflowId,
-		},
-		data: {
-			workflowStatus: WorkflowStatus.SummaryUploadStarted,
+			workflowStatus: WorkflowStatus.DepGraphUploadStarted,
 		},
 	})
 
 	try {
 		const uploadResult = await uploadWorkflowSummary({
 			workflowId: workflowArgs.workflowId,
-			contextGraph: ctxGraph,
+			dependencyGraph: depGraph,
 		})
 
 		await db.workflow.update({
@@ -134,7 +133,7 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 				workflowId: workflowArgs.workflowId,
 			},
 			data: {
-				workflowStatus: WorkflowStatus.SummaryUploadCompleted,
+				workflowStatus: WorkflowStatus.DepGraphUploadCompleted,
 			},
 		})
 
@@ -145,7 +144,7 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 				workflowId: workflowArgs.workflowId,
 			},
 			data: {
-				workflowStatus: WorkflowStatus.SummaryUploadFailed,
+				workflowStatus: WorkflowStatus.DepGraphUploadFailed,
 				workflowEndTimestamp: new Date(),
 			},
 		})
