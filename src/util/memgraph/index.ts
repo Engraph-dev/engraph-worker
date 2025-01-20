@@ -1,4 +1,4 @@
-import type { ContextGraph } from "@/common/ctxgraph"
+import type { DependencyGraph } from "@/common/depgraph"
 import { UNRESOLVED_MODULE_PREFIX } from "@/common/depgraph"
 import {
 	MEMGRAPH_BOLT_PORT,
@@ -122,7 +122,7 @@ export function getWorkflowPassword(workflowId: string) {
 
 type UploadWorkflowSummaryArgs = {
 	workflowId: string
-	contextGraph: ContextGraph
+	dependencyGraph: DependencyGraph
 }
 
 export async function runQueryInSession(
@@ -147,7 +147,7 @@ export async function runQueryInSession(
 export async function uploadWorkflowSummary(
 	args: UploadWorkflowSummaryArgs,
 ): Promise<StatusCode> {
-	const { contextGraph, workflowId } = args
+	const { dependencyGraph, workflowId } = args
 
 	const dbPassword = getWorkflowPassword(workflowId)
 	// const dbCredentials: GraphDBCredentials = {
@@ -161,7 +161,6 @@ export async function uploadWorkflowSummary(
 	const driverInstance = await getGraphDb(dbCredentials)
 
 	// This depgraph has all summaries available
-	const { dependencyGraph } = contextGraph
 
 	const { moduleNodes, symbolNodes } = dependencyGraph
 
@@ -170,7 +169,7 @@ export async function uploadWorkflowSummary(
 	})
 
 	for (const moduleNode of moduleNodes) {
-		const { moduleSourceCode, moduleSummary, modulePath } = moduleNode
+		const { moduleSourceCode, modulePath } = moduleNode
 
 		if (modulePath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
 			const modulePathWithoutPrefix = modulePath.slice(
@@ -186,11 +185,10 @@ export async function uploadWorkflowSummary(
 		} else {
 			await runQueryInSession(
 				dbSession,
-				`CREATE (m:Module {modulePath: $modulePath, moduleSourceCode: $moduleSourceCode, moduleSummary: $moduleSummary})`,
+				`CREATE (m:Module {modulePath: $modulePath, moduleSourceCode: $moduleSourceCode})`,
 				{
 					modulePath: modulePath,
 					moduleSourceCode: moduleSourceCode,
-					moduleSummary: moduleSummary,
 				},
 			)
 		}
@@ -230,11 +228,10 @@ export async function uploadWorkflowSummary(
 		} else {
 			await runQueryInSession(
 				dbSession,
-				`CREATE (s:Symbol {symbolIdentifier: $symbolIdentifier, symbolPath: $symbolPath, symbolSourceCode: $symbolSourceCode, symbolSummary: $symbolSummary})`,
+				`CREATE (s:Symbol {symbolIdentifier: $symbolIdentifier, symbolPath: $symbolPath, symbolSourceCode: $symbolSourceCode})`,
 				{
 					symbolPath: symbolPath,
 					symbolSourceCode: symbolSourceCode,
-					symbolSummary: symbolSummary,
 					symbolIdentifier: symbolIdentifier,
 				},
 			)

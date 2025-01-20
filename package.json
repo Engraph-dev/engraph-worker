@@ -1,7 +1,7 @@
 {
-	"name": "project-parser",
+	"name": "engraph-worker",
 	"version": "1.0.0",
-	"description": "Generates dependency graphs from a project",
+	"description": "Asynchronous worker to generate dependency and context graphs for a codebase",
 	"main": "src/index.ts",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
