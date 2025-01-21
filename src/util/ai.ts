@@ -1,7 +1,7 @@
-import { TOKEN_CHUNK_LENGTH } from "./config/ai"
 import type { Module } from "@/common/depgraph/modules"
 import type { Symbol } from "@/common/depgraph/symbols"
 import type { ParseArgs } from "@/common/parser"
+import { TOKEN_CHUNK_LENGTH } from "@/util/config/ai"
 import { envVar } from "@/util/env"
 import dotenv from "dotenv"
 import { OpenAI } from "openai"
