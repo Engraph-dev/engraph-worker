@@ -188,11 +188,10 @@ export async function uploadWorkflowGraph(
 		} else {
 			await runQueryInSession(
 				dbSession,
-				`CREATE (m:Module {modulePath: $modulePath, moduleSourceCode: $moduleSourceCode, moduleEmbeddings: $moduleEmbeddings})`,
+				`CREATE (m:Module {modulePath: $modulePath, moduleSourceCode: $moduleSourceCode})`,
 				{
 					modulePath: modulePath,
 					moduleSourceCode: moduleSourceCode,
-					moduleEmbeddings: moduleEmbeddings ?? [],
 				},
 			)
 		}
@@ -232,12 +231,11 @@ export async function uploadWorkflowGraph(
 		} else {
 			await runQueryInSession(
 				dbSession,
-				`CREATE (s:Symbol {symbolIdentifier: $symbolIdentifier, symbolPath: $symbolPath, symbolSourceCode: $symbolSourceCode, symbolEmbeddings: $symbolEmbeddings})`,
+				`CREATE (s:Symbol {symbolIdentifier: $symbolIdentifier, symbolPath: $symbolPath, symbolSourceCode: $symbolSourceCode})`,
 				{
 					symbolPath: symbolPath,
 					symbolSourceCode: symbolSourceCode,
 					symbolIdentifier: symbolIdentifier,
-					symbolEmbeddings: symbolEmbeddings,
 				},
 			)
 
