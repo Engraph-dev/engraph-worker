@@ -88,40 +88,7 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 	})
 
 	const depGraph = parserInstance.getDependencyGraph()
-	const embedGraph = new EmbeddingGraph(parserArgs, depGraph)
 
-	await db.workflow.update({
-		where: {
-			workflowId: workflowArgs.workflowId,
-		},
-		data: {
-			workflowStatus: WorkflowStatus.EmbedGenStarted,
-		},
-	})
-
-	try {
-		await embedGraph.generateEmbeddings()
-	} catch (e) {
-		await db.workflow.update({
-			where: {
-				workflowId: workflowArgs.workflowId,
-			},
-			data: {
-				workflowStatus: WorkflowStatus.EmbedGenFailed,
-				workflowEndTimestamp: new Date(),
-			},
-		})
-		log("workflow.graph", LogLevel.Error, e)
-	}
-
-	await db.workflow.update({
-		where: {
-			workflowId: workflowArgs.workflowId,
-		},
-		data: {
-			workflowStatus: WorkflowStatus.EmbedGenCompleted,
-		},
-	})
 	await db.workflow.update({
 		where: {
 			workflowId: workflowArgs.workflowId,

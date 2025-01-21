@@ -1,7 +1,7 @@
 export type Module = {
 	modulePath: string
 	moduleSourceCode: string
-	moduleEmbeddings?: number[]
 	// Unused
+	moduleEmbeddings?: number[]
 	moduleSummary?: string
 }
