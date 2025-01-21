@@ -128,7 +128,10 @@ type UploadWorkflowSummaryArgs = {
 export async function runQueryInSession(
 	dbSession: Session,
 	queryString: string,
-	queryOpts: Record<string, string | number | undefined> = {},
+	queryOpts: Record<
+		string,
+		string | number | string[] | number[] | undefined
+	> = {},
 ) {
 	let debugString = queryString
 	for (const objKey of Object.keys(queryOpts)) {
@@ -144,7 +147,7 @@ export async function runQueryInSession(
 	return dbSession.run(queryString, queryOpts)
 }
 
-export async function uploadWorkflowSummary(
+export async function uploadWorkflowGraph(
 	args: UploadWorkflowSummaryArgs,
 ): Promise<StatusCode> {
 	const { dependencyGraph, workflowId } = args
@@ -169,7 +172,7 @@ export async function uploadWorkflowSummary(
 	})
 
 	for (const moduleNode of moduleNodes) {
-		const { moduleSourceCode, modulePath } = moduleNode
+		const { moduleSourceCode, modulePath, moduleEmbeddings } = moduleNode
 
 		if (modulePath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
 			const modulePathWithoutPrefix = modulePath.slice(
@@ -185,10 +188,11 @@ export async function uploadWorkflowSummary(
 		} else {
 			await runQueryInSession(
 				dbSession,
-				`CREATE (m:Module {modulePath: $modulePath, moduleSourceCode: $moduleSourceCode})`,
+				`CREATE (m:Module {modulePath: $modulePath, moduleSourceCode: $moduleSourceCode, moduleEmbeddings: $moduleEmbeddings})`,
 				{
 					modulePath: modulePath,
 					moduleSourceCode: moduleSourceCode,
+					moduleEmbeddings: moduleEmbeddings ?? [],
 				},
 			)
 		}
@@ -197,9 +201,9 @@ export async function uploadWorkflowSummary(
 	for (const symbolNode of symbolNodes) {
 		const {
 			symbolSourceCode,
-			symbolSummary,
 			symbolPath,
 			symbolIdentifier,
+			symbolEmbeddings,
 		} = symbolNode
 
 		if (symbolPath.startsWith(UNRESOLVED_MODULE_PREFIX)) {
@@ -228,11 +232,12 @@ export async function uploadWorkflowSummary(
 		} else {
 			await runQueryInSession(
 				dbSession,
-				`CREATE (s:Symbol {symbolIdentifier: $symbolIdentifier, symbolPath: $symbolPath, symbolSourceCode: $symbolSourceCode})`,
+				`CREATE (s:Symbol {symbolIdentifier: $symbolIdentifier, symbolPath: $symbolPath, symbolSourceCode: $symbolSourceCode, symbolEmbeddings: $symbolEmbeddings})`,
 				{
 					symbolPath: symbolPath,
 					symbolSourceCode: symbolSourceCode,
 					symbolIdentifier: symbolIdentifier,
+					symbolEmbeddings: symbolEmbeddings,
 				},
 			)
 

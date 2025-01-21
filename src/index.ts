@@ -49,41 +49,29 @@ workerImpl()
 // 		),
 // 		projectType: ProjectType.typescript,
 // 	}
-// 	// const testParser = createParser(parserArgs)
+// 	const testParser = createParser(parserArgs)
 
-// 	// if (isStatusCode(testParser)) {
-// 	// 	return
-// 	// }
+// 	if (isStatusCode(testParser)) {
+// 		return
+// 	}
 
-// 	// await testParser.parseProject()
+// 	await testParser.parseProject()
 
-// 	// const ctxGraph = new ContextGraph(
-// 	// 	parserArgs,
-// 	// 	testParser.getDependencyGraph(),
-// 	// )
-
-// 	// await ctxGraph.generateContext()
-
-// 	// await fs.writeFile(
-// 	// 	path.resolve(process.cwd(), "cache/ctxgraph.json"),
-// 	// 	JSON.stringify(ctxGraph.dependencyGraph, null, 4),
-// 	// )
-
-// 	const cacheContent = await fs.readFile(
-// 		path.resolve(process.cwd(), "cache/ctxgraph.json"),
-// 		"utf-8",
-// 	)
-
-// 	const preloadGraph = JSON.parse(cacheContent)
-
-// 	const cachedGraph = new ContextGraph(
+// 	const embeddingGraph = new EmbeddingGraph(
 // 		parserArgs,
-// 		preloadGraph as DependencyGraph,
+// 		testParser.getDependencyGraph(),
 // 	)
 
-// 	await uploadWorkflowSummary({
+// 	await embeddingGraph.generateEmbeddings()
+
+// 	await fs.writeFile(
+// 		path.resolve(process.cwd(), "cache/embedgraph.json"),
+// 		JSON.stringify(embeddingGraph.dependencyGraph, null, 4),
+// 	)
+
+// 	await uploadWorkflowGraph({
 // 		workflowId: "do-not-care-uses-root-anyways",
-// 		contextGraph: cachedGraph,
+// 		dependencyGraph: embeddingGraph.dependencyGraph,
 // 	})
 // }
 

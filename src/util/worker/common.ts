@@ -1,8 +1,9 @@
+import { EmbeddingGraph } from "@/common/embedgraph"
 import { type ParseArgs, createParser } from "@/common/parser"
 import { PROJECT_DIRECTORY } from "@/util/config/worker"
 import db from "@/util/db"
 import { LogLevel, log } from "@/util/log"
-import { uploadWorkflowSummary } from "@/util/memgraph"
+import { uploadWorkflowGraph } from "@/util/memgraph"
 import { StatusCode, isStatusCode } from "@/util/process"
 import { type Project, type Workflow, WorkflowStatus } from "@prisma/client"
 
@@ -87,43 +88,51 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 	})
 
 	const depGraph = parserInstance.getDependencyGraph()
-	// const ctxGraph = new ContextGraph(parserArgs, depGraph)
-
-	// await db.workflow.update({
-	// 	where: {
-	// 		workflowId: workflowArgs.workflowId,
-	// 	},
-	// 	data: {
-	// 		workflowStatus: WorkflowStatus.SummaryGenStarted,
-	// 	},
-	// })
-
-	// try {
-	// 	await ctxGraph.generateContext()
-	// } catch (e) {
-	// 	await db.workflow.update({
-	// 		where: {
-	// 			workflowId: workflowArgs.workflowId,
-	// 		},
-	// 		data: {
-	// 			workflowStatus: WorkflowStatus.SummaryGenFailed,
-	// 			workflowEndTimestamp: new Date(),
-	// 		},
-	// 	})
-	// 	log("workflow.graph", LogLevel.Error, e)
-	// }
+	const embedGraph = new EmbeddingGraph(parserArgs, depGraph)
 
 	await db.workflow.update({
 		where: {
 			workflowId: workflowArgs.workflowId,
 		},
 		data: {
-			workflowStatus: WorkflowStatus.DepGraphUploadStarted,
+			workflowStatus: WorkflowStatus.EmbedGenStarted,
 		},
 	})
 
 	try {
-		const uploadResult = await uploadWorkflowSummary({
+		await embedGraph.generateEmbeddings()
+	} catch (e) {
+		await db.workflow.update({
+			where: {
+				workflowId: workflowArgs.workflowId,
+			},
+			data: {
+				workflowStatus: WorkflowStatus.EmbedGenFailed,
+				workflowEndTimestamp: new Date(),
+			},
+		})
+		log("workflow.graph", LogLevel.Error, e)
+	}
+
+	await db.workflow.update({
+		where: {
+			workflowId: workflowArgs.workflowId,
+		},
+		data: {
+			workflowStatus: WorkflowStatus.EmbedGenCompleted,
+		},
+	})
+	await db.workflow.update({
+		where: {
+			workflowId: workflowArgs.workflowId,
+		},
+		data: {
+			workflowStatus: WorkflowStatus.GraphUploadStarted,
+		},
+	})
+
+	try {
+		const uploadResult = await uploadWorkflowGraph({
 			workflowId: workflowArgs.workflowId,
 			dependencyGraph: depGraph,
 		})
@@ -133,7 +142,7 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 				workflowId: workflowArgs.workflowId,
 			},
 			data: {
-				workflowStatus: WorkflowStatus.DepGraphUploadCompleted,
+				workflowStatus: WorkflowStatus.GraphUploadCompleted,
 			},
 		})
 
@@ -144,10 +153,11 @@ export const initGraphWorkflow = workflowHandler(async (workflowArgs) => {
 				workflowId: workflowArgs.workflowId,
 			},
 			data: {
-				workflowStatus: WorkflowStatus.DepGraphUploadFailed,
+				workflowStatus: WorkflowStatus.GraphUploadFailed,
 				workflowEndTimestamp: new Date(),
 			},
 		})
+
 		log("workflow.graph", LogLevel.Error, e)
 	}
 

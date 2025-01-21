@@ -15,5 +15,7 @@ export type Symbol = {
 	symbolTypeSignature?: string
 	symbolPath: string
 	symbolSourceCode: string
+	symbolEmbeddings?: number[]
+	// Unused
 	symbolSummary?: string
 }
