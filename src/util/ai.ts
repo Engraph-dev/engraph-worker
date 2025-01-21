@@ -1,3 +1,4 @@
+import { TOKEN_CHUNK_LENGTH } from "./config/ai"
 import type { Module } from "@/common/depgraph/modules"
 import type { Symbol } from "@/common/depgraph/symbols"
 import type { ParseArgs } from "@/common/parser"
@@ -126,4 +127,22 @@ export function generateMessagesForModule(
 	]
 
 	return summariesWithUserMessage
+}
+
+export function splitContentIntoShittyTokens(contentStr: string) {
+	const splitContent = contentStr.split(/\s/g)
+	// Split the array into chunks of TOKEN_CHUNK_LENGTH
+	let tokenizedContent = []
+	for (
+		let chunkIdx = 0;
+		chunkIdx < splitContent.length;
+		chunkIdx += TOKEN_CHUNK_LENGTH
+	) {
+		tokenizedContent.push(
+			splitContent
+				.slice(chunkIdx, chunkIdx + TOKEN_CHUNK_LENGTH)
+				.join(" "),
+		)
+	}
+	return tokenizedContent
 }

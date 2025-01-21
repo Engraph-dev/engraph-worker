@@ -11,7 +11,7 @@ import {
 	generateSystemPrompt,
 	openAiClient,
 } from "@/util/ai"
-import { MODEL } from "@/util/config/ai"
+import { LLM_MODEL } from "@/util/config/ai"
 import { LogLevel, log } from "@/util/log"
 import { rateLimit } from "@/util/ratelimit"
 
@@ -174,10 +174,10 @@ export class ContextGraph {
 			...promptMessages,
 		]
 
-		await rateLimit()
+		await rateLimit(LLM_MODEL)
 
 		const aiResponse = await openAiClient.chat.completions.create({
-			model: MODEL,
+			model: LLM_MODEL,
 			messages: completionMessages,
 			n: 1,
 		})
@@ -332,10 +332,10 @@ export class ContextGraph {
 			...promptMessages,
 		]
 
-		await rateLimit()
+		await rateLimit(LLM_MODEL)
 
 		const aiResponse = await openAiClient.chat.completions.create({
-			model: MODEL,
+			model: LLM_MODEL,
 			messages: completionMessages,
 			n: 1,
 		})

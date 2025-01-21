@@ -1,10 +1,16 @@
+import { EmbeddingGraph } from "./common/embedgraph"
+import { createParser } from "./common/parser"
+import { uploadWorkflowGraph } from "./util/memgraph"
 import { MESSAGE_COOLDOWN_MS } from "@/util/config/worker"
 import { LogLevel, log } from "@/util/log"
-import { StatusCode } from "@/util/process"
+import { StatusCode, isStatusCode } from "@/util/process"
 import { deleteSQSMessage, receiveSQSMessage } from "@/util/sqs"
 import { timeout } from "@/util/time"
 import { startWorkflow } from "@/util/worker"
+import { ProjectType } from "@prisma/client"
 import dotenv from "dotenv"
+import fs from "fs/promises"
+import path from "path"
 
 dotenv.config()
 
@@ -38,53 +44,41 @@ async function workerImpl() {
 	}
 }
 
-workerImpl()
+// workerImpl()
 
-// async function main() {
-// 	const parserArgs = {
-// 		projectEntryPoint: "",
-// 		projectPath: path.join(
-// 			process.cwd(),
-// 			"tests/typescript/3-complex-implementation",
-// 		),
-// 		projectType: ProjectType.typescript,
-// 	}
-// 	// const testParser = createParser(parserArgs)
+async function main() {
+	const parserArgs = {
+		projectEntryPoint: "",
+		projectPath: path.join(
+			process.cwd(),
+			"tests/typescript/3-complex-implementation",
+		),
+		projectType: ProjectType.typescript,
+	}
+	const testParser = createParser(parserArgs)
 
-// 	// if (isStatusCode(testParser)) {
-// 	// 	return
-// 	// }
+	if (isStatusCode(testParser)) {
+		return
+	}
 
-// 	// await testParser.parseProject()
+	await testParser.parseProject()
 
-// 	// const ctxGraph = new ContextGraph(
-// 	// 	parserArgs,
-// 	// 	testParser.getDependencyGraph(),
-// 	// )
+	const embeddingGraph = new EmbeddingGraph(
+		parserArgs,
+		testParser.getDependencyGraph(),
+	)
 
-// 	// await ctxGraph.generateContext()
+	await embeddingGraph.generateEmbeddings()
 
-// 	// await fs.writeFile(
-// 	// 	path.resolve(process.cwd(), "cache/ctxgraph.json"),
-// 	// 	JSON.stringify(ctxGraph.dependencyGraph, null, 4),
-// 	// )
+	await fs.writeFile(
+		path.resolve(process.cwd(), "cache/embedgraph.json"),
+		JSON.stringify(embeddingGraph.dependencyGraph, null, 4),
+	)
 
-// 	const cacheContent = await fs.readFile(
-// 		path.resolve(process.cwd(), "cache/ctxgraph.json"),
-// 		"utf-8",
-// 	)
+	await uploadWorkflowGraph({
+		workflowId: "do-not-care-uses-root-anyways",
+		dependencyGraph: embeddingGraph.dependencyGraph,
+	})
+}
 
-// 	const preloadGraph = JSON.parse(cacheContent)
-
-// 	const cachedGraph = new ContextGraph(
-// 		parserArgs,
-// 		preloadGraph as DependencyGraph,
-// 	)
-
-// 	await uploadWorkflowSummary({
-// 		workflowId: "do-not-care-uses-root-anyways",
-// 		contextGraph: cachedGraph,
-// 	})
-// }
-
-// main()
+main()
