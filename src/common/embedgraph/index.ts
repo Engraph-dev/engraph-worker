@@ -2,11 +2,11 @@ import {
 	type DependencyGraph,
 	UNRESOLVED_MODULE_PREFIX,
 } from "@/common/depgraph"
-import type { Module } from "@/common/depgraph/modules"
-import type { Symbol } from "@/common/depgraph/symbols"
 import type { ParseArgs } from "@/common/parser"
 import { openAiClient, splitContentIntoShittyTokens } from "@/util/ai"
 import { EMBEDDING_MODEL } from "@/util/config/ai"
+import type { Module } from "@/util/defs/engraph-worker/common/modules"
+import type { Symbol } from "@/util/defs/engraph-worker/common/symbols"
 import { LogLevel, log } from "@/util/log"
 import { rateLimit } from "@/util/ratelimit"
 
