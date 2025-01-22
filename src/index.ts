@@ -34,7 +34,7 @@ async function workerImpl() {
 				`Workflow ${workflowData.workflowId} exited with status code ${reverseLookup[workflowStatus]}`,
 			)
 		}
-		timeout(MESSAGE_COOLDOWN_MS)
+		await timeout(MESSAGE_COOLDOWN_MS)
 	}
 }
 

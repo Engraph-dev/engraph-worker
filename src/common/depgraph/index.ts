@@ -1,5 +1,5 @@
-import type { Module } from "@/common/depgraph/modules"
-import type { Symbol } from "@/common/depgraph/symbols"
+import type { Module } from "@/util/defs/engraph-worker/common/modules"
+import type { Symbol } from "@/util/defs/engraph-worker/common/symbols"
 
 type SymbolToSymbolDependency = {
 	dependentSymbolPath: Symbol["symbolPath"]

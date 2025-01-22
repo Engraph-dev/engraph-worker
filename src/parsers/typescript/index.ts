@@ -1,6 +1,6 @@
 import { UNRESOLVED_MODULE_PREFIX } from "@/common/depgraph"
-import { SymbolType } from "@/common/depgraph/symbols"
 import { type ParseArgs, Parser } from "@/common/parser"
+import { SymbolType } from "@/util/defs/engraph-worker/common/symbols"
 import { LogLevel, log } from "@/util/log"
 import { StatusCode } from "@/util/process"
 import fsSync from "fs"
