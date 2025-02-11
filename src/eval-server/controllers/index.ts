@@ -1,7 +1,7 @@
-import entrypoints from "../../../eval-cases/entrypoints.json"
 import { ContextGraph } from "@/common/ctxgraph"
 import { DependencyGraph } from "@/common/depgraph"
 import { type ParseArgs, createParser } from "@/common/parser"
+import entrypoints from "@/eval-server/entrypoints.json"
 import { loadCachedGraph, storeCachedGraph } from "@/eval-server/utils/cache"
 import db from "@/util/db"
 import { StatusCodes } from "@/util/defs/engraph-backend/common"
