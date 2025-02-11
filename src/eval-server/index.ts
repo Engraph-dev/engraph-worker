@@ -9,7 +9,7 @@ import express from "express"
 export async function evalServerImpl() {
 	const evalServer = express()
 
-	evalServer.use(cors({ origin: "*" }))
+	evalServer.use(cors({ origin: true }))
 
 	evalServer.use(express.json())
 
