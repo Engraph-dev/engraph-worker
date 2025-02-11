@@ -2,8 +2,6 @@ import {
 	type DependencyGraph,
 	UNRESOLVED_MODULE_PREFIX,
 } from "@/common/depgraph"
-import type { Module } from "@/common/depgraph/modules"
-import type { Symbol } from "@/common/depgraph/symbols"
 import type { ParseArgs } from "@/common/parser"
 import {
 	generateMessagesForModule,
@@ -11,7 +9,9 @@ import {
 	generateSystemPrompt,
 	openAiClient,
 } from "@/util/ai"
-import { MODEL } from "@/util/config/ai"
+import { LLM_MODEL } from "@/util/config/ai"
+import type { Module } from "@/util/defs/engraph-worker/common/modules"
+import type { Symbol } from "@/util/defs/engraph-worker/common/symbols"
 import { LogLevel, log } from "@/util/log"
 import { rateLimit } from "@/util/ratelimit"
 
@@ -26,6 +26,11 @@ type ContextMetrics = {
 	totalModulesNotProcessed: number
 }
 
+/**
+ * READ ME:
+ * This graph generates the full context for a project by generating summaries for all symbols and modules in the project.
+ * As of 19/01/2025, context generation is no longer done worker-side. It will be performed user side
+ */
 export class ContextGraph {
 	parserArgs: ParseArgs
 	dependencyGraph: DependencyGraph
@@ -169,10 +174,10 @@ export class ContextGraph {
 			...promptMessages,
 		]
 
-		await rateLimit()
+		await rateLimit(LLM_MODEL)
 
 		const aiResponse = await openAiClient.chat.completions.create({
-			model: MODEL,
+			model: LLM_MODEL,
 			messages: completionMessages,
 			n: 1,
 		})
@@ -327,10 +332,10 @@ export class ContextGraph {
 			...promptMessages,
 		]
 
-		await rateLimit()
+		await rateLimit(LLM_MODEL)
 
 		const aiResponse = await openAiClient.chat.completions.create({
-			model: MODEL,
+			model: LLM_MODEL,
 			messages: completionMessages,
 			n: 1,
 		})

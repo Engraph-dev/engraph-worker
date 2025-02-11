@@ -1,6 +1,6 @@
 import { UNRESOLVED_MODULE_PREFIX } from "@/common/depgraph"
-import { SymbolType } from "@/common/depgraph/symbols"
 import { type ParseArgs, Parser } from "@/common/parser"
+import { SymbolType } from "@/util/defs/engraph-worker/common/symbols"
 import { LogLevel, log } from "@/util/log"
 import { StatusCode } from "@/util/process"
 import fsSync from "fs"
@@ -90,10 +90,10 @@ class TypescriptParser extends Parser {
 				const namedImports = importDeclaration.getNamedImports()
 				namedImports.forEach((namedImport) => {
 					const symbolName = namedImport.getText()
-					this.dependencyGraph.addModuleToSymbolDependency({
-						dependentModulePath: relativeFilePath,
-						dependencySymbolIdentifier: symbolName,
-						dependencySymbolPath: modulePath,
+					this.dependencyGraph.addSymbolToModuleDependency({
+						dependencyModulePath: relativeFilePath,
+						dependentSymbolIdentifier: symbolName,
+						dependentSymbolPath: modulePath,
 					})
 				})
 
@@ -124,10 +124,10 @@ class TypescriptParser extends Parser {
 				})
 
 				// Implicitly add a module dependency to it's own file for each export
-				this.dependencyGraph.addModuleToSymbolDependency({
-					dependentModulePath: relativeFilePath,
-					dependencySymbolIdentifier: exportName,
-					dependencySymbolPath: relativeFilePath,
+				this.dependencyGraph.addSymbolToModuleDependency({
+					dependencyModulePath: relativeFilePath,
+					dependentSymbolIdentifier: exportName,
+					dependentSymbolPath: relativeFilePath,
 				})
 			}
 		})

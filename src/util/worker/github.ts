@@ -126,6 +126,12 @@ export const githubWorkflowHandler = workflowHandler(async (workflowArgs) => {
 
 	const repoGitInstance = simpleGit(PROJECT_DIRECTORY)
 
+	log(
+		"workflow.github",
+		LogLevel.Debug,
+		`Checking out repository at ${commitRef}`,
+	)
+
 	await repoGitInstance.checkout(commitRef)
 
 	await db.workflow.update({
