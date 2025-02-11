@@ -25,6 +25,8 @@ ENV NODE_ENV=production
 # Build the server files, output will be stored in dist
 RUN ["npm", "run", "build"]
 
+COPY eval-cases /services/engraph-worker/eval-cases
+
 COPY dist/ /services/engraph-worker/dist/
 
 CMD ["npm", "start"]
