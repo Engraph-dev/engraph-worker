@@ -1,13 +1,22 @@
 PARENT_BRANCH=$(git branch --show-current)
 
 cd prisma
-git checkout -b $PARENT_BRANCH
+if git show-ref --verify --quiet refs/heads/"$PARENT_BRANCH"; then
+  git checkout "$PARENT_BRANCH"
+else
+  git checkout -b "$PARENT_BRANCH"
+fi
+
 git pull origin $PARENT_BRANCH
-git push origin $PARENT_BRANCH
+git push -u origin $PARENT_BRANCH
 cd ..
 
 cd src/util/defs
-git checkout -b $PARENT_BRANCH
+if git show-ref --verify --quiet refs/heads/"$PARENT_BRANCH"; then
+  git checkout "$PARENT_BRANCH"
+else
+  git checkout -b "$PARENT_BRANCH"
+fi
 git pull origin $PARENT_BRANCH
-git push origin $PARENT_BRANCH
+git push -u origin $PARENT_BRANCH
 cd ../../../
