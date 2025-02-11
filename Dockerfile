@@ -20,6 +20,8 @@ RUN ["npm", "ci"]
 # Copy source files
 COPY src /services/engraph-worker/src
 
+COPY eval-cases /services/engraph-worker/eval-cases
+
 ENV NODE_ENV=production
 
 # Build the server files, output will be stored in dist
