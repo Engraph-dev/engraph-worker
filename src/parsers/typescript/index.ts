@@ -90,20 +90,17 @@ class TypescriptParser extends Parser {
 				const namedImports = importDeclaration.getNamedImports()
 				namedImports.forEach((namedImport) => {
 					const symbolName = namedImport.getText()
-					this.dependencyGraph.addSymbolToModuleDependency({
-						dependencyModulePath: relativeFilePath,
-						dependentSymbolIdentifier: symbolName,
-						dependentSymbolPath: modulePath,
+					this.dependencyGraph.addModuleToSymbolDependency({
+						dependentModulePath: relativeFilePath,
+						dependencySymbolIdentifier: symbolName,
+						dependencySymbolPath: modulePath,
 					})
 				})
 
-				const defaultImport = importDeclaration.getDefaultImport()
-				if (defaultImport) {
-					this.dependencyGraph.addModuleToModuleDependency({
-						dependencyModulePath: modulePath,
-						dependentModulePath: relativeFilePath,
-					})
-				}
+				this.dependencyGraph.addModuleToModuleDependency({
+					dependencyModulePath: modulePath,
+					dependentModulePath: relativeFilePath,
+				})
 			})
 
 			// Exports

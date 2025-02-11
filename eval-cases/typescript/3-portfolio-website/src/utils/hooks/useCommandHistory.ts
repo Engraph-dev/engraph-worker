@@ -1,4 +1,4 @@
-import { Command } from "./typedef"
+import { Command } from "@/utils/typedef"
 import { useCallback, useState } from "react"
 
 type UseCommandHistoryOptions = {}

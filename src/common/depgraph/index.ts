@@ -42,13 +42,17 @@ export class DependencyGraph implements IDependencyGraph {
 	moduleToSymbolDependencies: ModuleToSymbolDependency[]
 	moduleToModuleDependencies: ModuleToModuleDependency[]
 
-	constructor() {
-		this.symbolNodes = []
-		this.moduleNodes = []
-		this.symbolToSymbolDependencies = []
-		this.symbolToModuleDependencies = []
-		this.moduleToSymbolDependencies = []
-		this.moduleToModuleDependencies = []
+	constructor(depGraph?: DependencyGraph) {
+		this.symbolNodes = depGraph?.symbolNodes ?? []
+		this.moduleNodes = depGraph?.moduleNodes ?? []
+		this.symbolToSymbolDependencies =
+			depGraph?.symbolToSymbolDependencies ?? []
+		this.symbolToModuleDependencies =
+			depGraph?.symbolToModuleDependencies ?? []
+		this.moduleToSymbolDependencies =
+			depGraph?.moduleToSymbolDependencies ?? []
+		this.moduleToModuleDependencies =
+			depGraph?.moduleToModuleDependencies ?? []
 	}
 
 	addSymbolNode(symbolNode: Symbol) {

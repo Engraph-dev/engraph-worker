@@ -28,7 +28,10 @@
 	"dependencies": {
 		"@aws-sdk/client-sqs": "^3.726.1",
 		"@prisma/client": "^6.2.1",
+		"@types/express": "^5.0.0",
+		"cors": "^2.8.5",
 		"dotenv": "^16.4.5",
+		"express": "^4.21.2",
 		"neo4j-driver": "^5.27.0",
 		"octokit": "^4.1.0",
 		"openai": "^4.73.1",
@@ -43,6 +46,7 @@
 	},
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^4.3.0",
+		"@types/cors": "^2.8.17",
 		"@types/node": "^22.10.1",
 		"husky": "^9.1.6",
 		"lint-staged": "^15.2.10",
