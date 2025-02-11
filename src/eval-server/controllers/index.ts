@@ -405,6 +405,8 @@ export async function addEvalPreference(req: Request, res: Response) {
 				preferenceTimestamp: new Date(),
 			},
 		})
+
+		res.status(200).json({})
 	} catch (e) {
 		log("eval-server", LogLevel.Error, e)
 		res.status(StatusCodes.INTERNAL_ERROR).json({})
