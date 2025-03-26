@@ -54,6 +54,33 @@ class TypescriptParser extends Parser {
 	}
 
 	parseProject() {
+		// Include package.json for dependency management as well
+		const packageJsonPath = path.resolve(this.projectPath, "package.json")
+
+		let packageJSONExists = false
+
+		try {
+			const packageJsonCheck = fsSync.statSync(packageJsonPath)
+
+			const packageJSONContents = fsSync.readFileSync(packageJsonPath, {
+				encoding: "utf-8",
+			})
+
+			this.dependencyGraph.addModuleNode({
+				modulePath: this.getPathRelativeToProjectRoot(packageJsonPath),
+				moduleSourceCode: packageJSONContents,
+			})
+
+			packageJSONExists = true
+		} catch (e) {
+			log(
+				"parser.typescript",
+				LogLevel.Info,
+				"package.json does not exist",
+				e,
+			)
+		}
+
 		const sourceFiles = this.tsProject.getSourceFiles()
 
 		sourceFiles.forEach((sourceFile) => {
@@ -66,6 +93,14 @@ class TypescriptParser extends Parser {
 				modulePath: relativeFilePath,
 				moduleSourceCode: sourceCode,
 			})
+
+			if (packageJSONExists) {
+				this.dependencyGraph.addModuleToModuleDependency({
+					dependentModulePath: relativeFilePath,
+					dependencyModulePath:
+						this.getPathRelativeToProjectRoot(packageJsonPath),
+				})
+			}
 
 			// Imports
 			const sourceFileImports = sourceFile.getImportDeclarations()
@@ -112,7 +147,7 @@ class TypescriptParser extends Parser {
 					},
 				)
 
-				const mergedDeclarations = textDeclarations.join(" ")
+				const mergedDeclarations = textDeclarations.join("\n")
 				this.dependencyGraph.addSymbolNode({
 					symbolIdentifier: exportName,
 					symbolPath: relativeFilePath,
@@ -126,6 +161,26 @@ class TypescriptParser extends Parser {
 					dependentSymbolIdentifier: exportName,
 					dependentSymbolPath: relativeFilePath,
 				})
+
+				// Copy all imports of a module to the dependencies of the export as well
+				this.dependencyGraph
+					.getSymbolDependenciesOfModule(relativeFilePath)
+					.forEach((modSymDependency) => {
+						const symbolNode = this.dependencyGraph.getSymbolNode(
+							modSymDependency.dependencySymbolPath,
+							modSymDependency.dependencySymbolIdentifier,
+						)
+
+						if (symbolNode) {
+							this.dependencyGraph.addSymbolToSymbolDependency({
+								dependencySymbolIdentifier:
+									symbolNode.symbolIdentifier,
+								dependencySymbolPath: symbolNode.symbolPath,
+								dependentSymbolPath: relativeFilePath,
+								dependentSymbolIdentifier: exportName,
+							})
+						}
+					})
 			}
 		})
 
