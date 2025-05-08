@@ -26,5 +26,11 @@ export function log(serviceName: string, logLevel: LogLevel, ...data: any[]) {
 		return dataObj
 	})
 
-	console[logLevel](`[${serviceName}:${logLevel}] ${mappedData.join(" ")}`)
+	console[logLevel](
+		`[${serviceName}:${logLevel}] ${mappedData
+			.join(" ")
+			.replaceAll("\\\\", "\\")
+			.replaceAll("\\n", "\n")
+			.replaceAll("\\t", "\t")}`,
+	)
 }
